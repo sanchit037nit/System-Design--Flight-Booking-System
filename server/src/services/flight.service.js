@@ -17,9 +17,23 @@ const flights = [
   }
 ];
 
-const getFlights = async () => {
-  return flights;
-};
+async function getFlights(query) {
+  const filter = {};
+
+  if (query.from) {
+    filter.from = query.from;
+  }
+
+  if (query.to) {
+    filter.to = query.to;
+  }
+
+  if (query.airline) {
+    filter.airline = query.airline;
+  }
+
+  return Flight.find(filter);
+}
 
 const getFlightById = async (id) => {
   const flight = flights.find((flight) => flight.id === id);
