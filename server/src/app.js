@@ -17,7 +17,7 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-app.use("/api/flights", flightRoutes);
+app.use("/api/v1/flights", flightRoutes);
 
 app.use(errorHandler);
 
