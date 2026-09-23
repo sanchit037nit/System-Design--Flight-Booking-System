@@ -18,7 +18,7 @@ const flights = [
 ];
 
 async function getFlights(query) {
-  const page = Math.max(
+
 const filter = {};
 
 if (query.from) {
