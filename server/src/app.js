@@ -2,6 +2,7 @@ const express = require("express");
 
 const flightRoutes = require("./routes/flight.routes");
 const requestLogger = require("./middleware/requestLogger");
+const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
@@ -17,5 +18,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/flights", flightRoutes);
+
+app.use(errorHandler);
 
 module.exports = app;
