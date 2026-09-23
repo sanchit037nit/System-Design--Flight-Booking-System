@@ -18,21 +18,43 @@ const flights = [
 ];
 
 async function getFlights(query) {
-  const filter = {};
+  const page = Math.max(
+const filter = {};
 
-  if (query.from) {
-    filter.from = query.from;
-  }
+if (query.from) {
+  filter.from = query.from.toUpperCase();
+}
 
-  if (query.to) {
-    filter.to = query.to;
-  }
+if (query.to) {
+  filter.to = query.to.toUpperCase();
+}
 
-  if (query.airline) {
-    filter.airline = query.airline;
-  }
+const page = Math.max(Number(query.page) || 1, 1);
+const sort = query.sort || "departureTime";
+const limit = Math.min(
+  Math.max(Number(query.limit) || 10, 1),
+  100
+);
 
-  return Flight.find(filter);
+const skip = (page - 1) * limit;
+
+  const [flights, total] = await Promise.all([
+    Flight.find({})
+      .skip(skip)
+      .limit(limit),
+
+    Flight.countDocuments({})
+  ]);
+
+  return {
+    data: flights,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit)
+    }
+  };
 }
 
 const getFlightById = async (id) => {
