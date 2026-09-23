@@ -1,24 +1,13 @@
 const express = require("express");
 
+const flightController = require("../controllers/flight.controller");
+
 const router = express.Router();
 
-router.get("/", (req, res) => {
-  res.json({
-    message: "Get all flights"
-  });
-});
+router.get("/", flightController.getFlights);
 
-router.get("/:id", (req, res) => {
-  res.json({
-    message: `Get flight ${req.params.id}`
-  });
-});
+router.get("/:id", flightController.getFlightById);
 
-router.post("/", (req, res) => {
-  res.status(201).json({
-    message: "Create flight",
-    data: req.body
-  });
-});
+router.post("/", flightController.createFlight);
 
 module.exports = router;
