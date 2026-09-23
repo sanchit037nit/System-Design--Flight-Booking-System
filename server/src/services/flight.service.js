@@ -1,3 +1,4 @@
+
 const flights = [
   {
     id: "FL001",
@@ -16,6 +17,9 @@ const flights = [
     price: 6200
   }
 ];
+
+
+
 
 async function getFlights(query) {
 

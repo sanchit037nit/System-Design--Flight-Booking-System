@@ -1,17 +1,19 @@
 const flightService = require("../services/flight.service");
 
-const getFlights = async (req, res, next) => {
-  try {
-    const flights = await flightService.getFlights();
+const {
+  successResponse
+} = require("../utils/response");
 
-    res.status(200).json({
-      success: true,
-      data: flights
-    });
+
+async function getFlights(req, res, next) {
+  try {
+    const result = await flightService.getFlights(req.query);
+
+    return successResponse(res, result);
   } catch (error) {
     next(error);
   }
-};
+}
 
 const getFlightById = async (req, res, next) => {
   try {
