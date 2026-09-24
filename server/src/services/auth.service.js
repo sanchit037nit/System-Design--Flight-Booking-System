@@ -1,4 +1,6 @@
+const bcrypt = require("bcrypt");
 const userRepository = require("../repositories/user.repository");
+const { generateAccessToken } = require("../utils/jwt");
 
 async function registerUser({ name, email, password }) {
     const existingUser = await userRepository.findUserByEmail(email);
@@ -9,18 +11,49 @@ async function registerUser({ name, email, password }) {
         throw error;
     }
 
-
     const passwordHash = await bcrypt.hash(password, 12);
 
-    const user = await userRepository.createUser({
+    return userRepository.createUser({
         name,
         email,
         passwordHash
     });
+}
 
-    return user;
+async function loginUser({ email, password }) {
+    const user = await userRepository.findUserByEmail(email);
+
+    if (!user) {
+        const error = new Error("Invalid email or password");
+        error.statusCode = 401;
+        throw error;
+    }
+
+    const passwordValid = await bcrypt.compare(
+        password,
+        user.password_hash
+    );
+
+    if (!passwordValid) {
+        const error = new Error("Invalid email or password");
+        error.statusCode = 401;
+        throw error;
+    }
+
+    const accessToken = generateAccessToken(user);
+
+    return {
+        accessToken,
+        user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+        }
+    };
 }
 
 module.exports = {
-    registerUser
+    registerUser,
+    loginUser
 };
