@@ -98,3 +98,24 @@ CREATE TABLE payments (
     FOREIGN KEY (booking_id)
         REFERENCES bookings(id)
 );
+
+
+-- Flight search
+CREATE INDEX idx_flights_route
+ON flights(departure_airport_id, arrival_airport_id);
+
+-- Flight date/time search
+CREATE INDEX idx_flights_departure_time
+ON flights(departure_time);
+
+-- Find user's bookings
+CREATE INDEX idx_bookings_user_id
+ON bookings(user_id);
+
+-- Find bookings for a flight
+CREATE INDEX idx_bookings_flight_id
+ON bookings(flight_id);
+
+-- Find seats belonging to a flight
+CREATE INDEX idx_seats_flight_id
+ON seats(flight_id);
