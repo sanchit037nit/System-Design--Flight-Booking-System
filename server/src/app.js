@@ -3,7 +3,7 @@ const express = require("express");
 const flightRoutes = require("./routes/flight.routes");
 const requestLogger = require("./middleware/requestLogger");
 const errorHandler = require("./middleware/errorHandler");
-
+const authRoutes = require("./routes/auth.routes");
 const app = express();
 
 app.use(express.json());
@@ -18,6 +18,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/v1/flights", flightRoutes);
+app.use("/api/v1/auth", authRoutes);
 
 app.use(errorHandler);
 
