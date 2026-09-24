@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { jwtSecret } = require("../config/env");
 
 function generateAccessToken(user) {
     return jwt.sign(
@@ -7,7 +8,7 @@ function generateAccessToken(user) {
             role: user.role,
             email: user.email
         },
-        process.env.JWT_SECRET,
+        jwtSecret,
         {
             expiresIn: "15m"
         }
@@ -15,10 +16,7 @@ function generateAccessToken(user) {
 }
 
 function verifyAccessToken(token) {
-    return jwt.verify(
-        token,
-        process.env.JWT_SECRET
-    );
+    return jwt.verify(token, jwtSecret);
 }
 
 module.exports = {
