@@ -9,8 +9,8 @@ async function registerUser({ name, email, password }) {
         throw error;
     }
 
-    // Password hashing will be added in Commit 24.
-    const passwordHash = password;
+
+    const passwordHash = await bcrypt.hash(password, 12);
 
     const user = await userRepository.createUser({
         name,
