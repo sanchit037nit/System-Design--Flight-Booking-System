@@ -28,6 +28,14 @@ const createBooking = async (req, res) => {
             });
         }
 
+        if (seats[0].status !== "AVAILABLE") {
+    await connection.rollback();
+
+    return res.status(409).json({
+        message: "Seat is not available"
+    });
+        }
+        
         if (seats[0].status === "BOOKED") {
             await connection.rollback();
 
