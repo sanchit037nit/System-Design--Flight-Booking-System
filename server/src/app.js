@@ -9,6 +9,8 @@ const adminRoutes = require("./routes/admin.routes");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const bookingRoutes=require("./routes/booking.routes")
+const rateLimiter = require("./middleware/rateLimiter");
+
 
 const app = express();
 const cors = require("cors");
@@ -18,6 +20,7 @@ const authLimiter = rateLimit({
 });
 const requestTimer = require("./middleware/requestTimer");
 
+app.use("/api", rateLimiter);
 app.use(requestTimer);
 app.use(express.json());
 app.use(helmet());
