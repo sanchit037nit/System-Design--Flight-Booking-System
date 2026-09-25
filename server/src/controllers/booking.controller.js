@@ -1,5 +1,3 @@
-const pool = require("../config/db");
-
 const createBooking = async (req, res) => {
     const connection = await pool.getConnection();
 
@@ -7,12 +5,40 @@ const createBooking = async (req, res) => {
         const { flightId, seatId } = req.body;
         const userId = req.user.id;
 
+        const idempotencyKey =
+            req.headers["idempotency-key"];
+
+        if (!idempotencyKey) {
+            return res.status(400).json({
+                message: "Idempotency-Key is required"
+            });
+        }
+
         await connection.beginTransaction();
 
-        // Lock the seat row
+        // Check whether request was already processed
+        const [existing] = await connection.query(
+            `
+            SELECT id, status
+            FROM bookings
+            WHERE idempotency_key = ?
+            `,
+            [idempotencyKey]
+        );
+
+        if (existing.length > 0) {
+            await connection.rollback();
+
+            return res.status(200).json({
+                message: "Booking already processed",
+                bookingId: existing[0].id
+            });
+        }
+
+        // Lock seat
         const [seats] = await connection.query(
             `
-            SELECT id, flight_id, seat_number, status
+            SELECT *
             FROM seats
             WHERE id = ?
             AND flight_id = ?
@@ -29,9 +55,7 @@ const createBooking = async (req, res) => {
             });
         }
 
-        const seat = seats[0];
-
-        if (seat.status !== "AVAILABLE") {
+        if (seats[0].status !== "AVAILABLE") {
             await connection.rollback();
 
             return res.status(409).json({
@@ -43,13 +67,24 @@ const createBooking = async (req, res) => {
         const [booking] = await connection.query(
             `
             INSERT INTO bookings
-            (user_id, flight_id, seat_id, status)
-            VALUES (?, ?, ?, 'CONFIRMED')
+            (
+                user_id,
+                flight_id,
+                seat_id,
+                status,
+                idempotency_key
+            )
+            VALUES (?, ?, ?, 'CONFIRMED', ?)
             `,
-            [userId, flightId, seatId]
+            [
+                userId,
+                flightId,
+                seatId,
+                idempotencyKey
+            ]
         );
 
-        // Mark seat as booked
+        // Book seat
         await connection.query(
             `
             UPDATE seats
@@ -70,7 +105,7 @@ const createBooking = async (req, res) => {
 
         await connection.rollback();
 
-        console.error("Booking error:", error);
+        console.error(error);
 
         return res.status(500).json({
             message: "Booking failed"
