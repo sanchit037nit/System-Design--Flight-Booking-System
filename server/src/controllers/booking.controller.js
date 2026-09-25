@@ -9,17 +9,17 @@ const createBooking = async (req, res) => {
 
         await connection.beginTransaction();
 
-        // Check seat
-const [seats] = await connection.query(
-    `
-    SELECT *
-    FROM seats
-    WHERE id = ?
-    AND flight_id = ?
-    FOR UPDATE
-    `,
-    [seatId, flightId]
-);
+        // Lock the seat row
+        const [seats] = await connection.query(
+            `
+            SELECT id, flight_id, seat_number, status
+            FROM seats
+            WHERE id = ?
+            AND flight_id = ?
+            FOR UPDATE
+            `,
+            [seatId, flightId]
+        );
 
         if (seats.length === 0) {
             await connection.rollback();
@@ -29,15 +29,9 @@ const [seats] = await connection.query(
             });
         }
 
-        if (seats[0].status !== "AVAILABLE") {
-    await connection.rollback();
+        const seat = seats[0];
 
-    return res.status(409).json({
-        message: "Seat is not available"
-    });
-        }
-        
-        if (seats[0].status === "BOOKED") {
+        if (seat.status !== "AVAILABLE") {
             await connection.rollback();
 
             return res.status(409).json({
@@ -49,13 +43,13 @@ const [seats] = await connection.query(
         const [booking] = await connection.query(
             `
             INSERT INTO bookings
-            (user_id, flight_id, seat_id)
-            VALUES (?, ?, ?)
+            (user_id, flight_id, seat_id, status)
+            VALUES (?, ?, ?, 'CONFIRMED')
             `,
             [userId, flightId, seatId]
         );
 
-        // Mark seat booked
+        // Mark seat as booked
         await connection.query(
             `
             UPDATE seats
@@ -67,7 +61,7 @@ const [seats] = await connection.query(
 
         await connection.commit();
 
-        res.status(201).json({
+        return res.status(201).json({
             message: "Booking successful",
             bookingId: booking.insertId
         });
@@ -76,9 +70,9 @@ const [seats] = await connection.query(
 
         await connection.rollback();
 
-        console.error(error);
+        console.error("Booking error:", error);
 
-        res.status(500).json({
+        return res.status(500).json({
             message: "Booking failed"
         });
 
