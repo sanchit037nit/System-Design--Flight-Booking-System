@@ -5,8 +5,13 @@ const { flightSearchKey } = require("../utils/cacheKeys");
 async function searchFlights(from, to) {
   const cacheKey = flightSearchKey(from, to);
 
-  // 1. Check Redis
-  const cachedFlights = await redisClient.get(cacheKey);
+  let cachedFlights;
+
+  try {
+    cachedFlights = await redisClient.get(cacheKey);
+  } catch (error) {
+    console.error("Redis read failed:", error.message);
+  }
 
   if (cachedFlights) {
     return {
@@ -15,7 +20,6 @@ async function searchFlights(from, to) {
     };
   }
 
-  // 2. Cache miss → query MySQL
   const [rows] = await pool.query(
     `
       SELECT *
@@ -26,11 +30,19 @@ async function searchFlights(from, to) {
     [from, to]
   );
 
-  // 3. Store result in Redis
+    try {
+      
+         const ttl = Number(process.env.FLIGHT_CACHE_TTL || 60);
   await redisClient.set(
     cacheKey,
-    JSON.stringify(rows)
+    JSON.stringify(rows),
+    {
+      EX: ttl,
+    }
   );
+  } catch (error) {
+    console.error("Redis write failed:", error.message);
+  }
 
   return {
     data: rows,
