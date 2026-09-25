@@ -1,34 +1,31 @@
-const requests = new Map();
+const { redisClient } = require("../config/redis");
 
-const WINDOW_MS = 60 * 1000;
+const WINDOW_SECONDS = 60;
 const MAX_REQUESTS = 100;
 
-function rateLimiter(req, res, next) {
-    const userId = req.user?.id || req.ip;
+async function rateLimiter(req, res, next) {
+    try {
+        const userId = req.user?.id || req.ip;
 
-    const now = Date.now();
+        const key = `rate_limit:${userId}`;
 
-    const record = requests.get(userId);
+        const currentCount = await redisClient.incr(key);
 
-    if (!record || now - record.startTime >= WINDOW_MS) {
-        requests.set(userId, {
-            count: 1,
-            startTime: now
-        });
+        if (currentCount === 1) {
+            await redisClient.expire(key, WINDOW_SECONDS);
+        }
 
-        return next();
+        if (currentCount > MAX_REQUESTS) {
+            return res.status(429).json({
+                success: false,
+                message: "Too many requests. Please try again later."
+            });
+        }
+
+        next();
+    } catch (error) {
+        next(error);
     }
-
-    if (record.count >= MAX_REQUESTS) {
-        return res.status(429).json({
-            success: false,
-            message: "Too many requests. Please try again later."
-        });
-    }
-
-    record.count++;
-
-    next();
 }
 
 module.exports = rateLimiter;
