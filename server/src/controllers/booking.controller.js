@@ -10,15 +10,16 @@ const createBooking = async (req, res) => {
         await connection.beginTransaction();
 
         // Check seat
-        const [seats] = await connection.query(
-            `
-            SELECT *
-            FROM seats
-            WHERE id = ?
-            AND flight_id = ?
-            `,
-            [seatId, flightId]
-        );
+const [seats] = await connection.query(
+    `
+    SELECT *
+    FROM seats
+    WHERE id = ?
+    AND flight_id = ?
+    FOR UPDATE
+    `,
+    [seatId, flightId]
+);
 
         if (seats.length === 0) {
             await connection.rollback();
