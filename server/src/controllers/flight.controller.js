@@ -1,37 +1,21 @@
-const flightService =
-    require("../services/flightService");
+const { searchFlights } = require("../services/flight.service");
 
-async function searchFlights(req, res) {
-    try {
+async function getFlights(req, res, next) {
+  try {
+    const { from, to } = req.query;
 
-        const {
-            departure,
-            arrival,
-            date
-        } = req.query;
+    const result = await searchFlights(from, to);
 
-        const flights =
-            await flightService.searchFlights(
-                departure,
-                arrival,
-                date
-            );
-
-        res.json({
-            success: true,
-            data: flights
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-
-    }
+    res.status(200).json({
+      success: true,
+      source: result.source,
+      data: result.data,
+    });
+  } catch (error) {
+    next(error);
+  }
 }
 
 module.exports = {
-    searchFlights
+  getFlights,
 };
