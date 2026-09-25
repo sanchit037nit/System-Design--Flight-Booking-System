@@ -1,4 +1,7 @@
-const { searchFlights } = require("../services/flight.service");
+const {
+  searchFlights,
+  updateFlight: updateFlightService,
+} = require("../services/flight.service");
 
 async function getFlights(req, res, next) {
   try {
@@ -16,6 +19,22 @@ async function getFlights(req, res, next) {
   }
 }
 
+async function updateFlight(req, res, next) {
+  try {
+    const { id } = req.params;
+
+    const result = await updateFlightService(id, req.body);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getFlights,
+  updateFlight,
 };
