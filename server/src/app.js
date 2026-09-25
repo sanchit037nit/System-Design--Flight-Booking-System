@@ -16,7 +16,9 @@ const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 20
 });
+const requestTimer = require("./middleware/requestTimer");
 
+app.use(requestTimer);
 app.use(express.json());
 app.use(helmet());
 app.use(requestLogger);
