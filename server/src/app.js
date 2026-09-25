@@ -8,7 +8,7 @@ const userRoutes = require("./routes/user.routes");
 const adminRoutes = require("./routes/admin.routes");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
-
+const bookingRoutes=require("./routes/booking.routes")
 
 const app = express();
 const cors = require("cors");
@@ -32,6 +32,7 @@ app.use("/api/v1/flights", flightRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/bookings", bookingRoutes);
 
 app.use("/api/v1/auth/login", authLimiter);
 app.use(errorHandler);
