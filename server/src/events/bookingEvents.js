@@ -1,5 +1,11 @@
-const BOOKING_CREATED = "booking.created";
+const { createEvent } = require("../events/eventBus");
 
-module.exports = {
-    BOOKING_CREATED
-};
+const event = createEvent(
+    BOOKING_CREATED,
+    {
+        bookingId: booking.id,
+        userId: booking.userId
+    }
+);
+
+eventBus.emit(BOOKING_CREATED, event);

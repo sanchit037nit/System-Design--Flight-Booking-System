@@ -1,5 +1,14 @@
-const EventEmitter = require("events");
+const crypto = require("crypto");
 
-const eventBus = new EventEmitter();
+function createEvent(type, payload) {
+    return {
+        eventId: crypto.randomUUID(),
+        type,
+        payload,
+        createdAt: new Date().toISOString()
+    };
+}
 
-module.exports = eventBus;
+module.exports = {
+    createEvent
+};
